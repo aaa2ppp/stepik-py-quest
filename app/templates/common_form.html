@@ -1,0 +1,12 @@
+<form action="" method="post">
+    {{ form.csrf_token() }}
+    {% for field in form if not field.name in ("csrf_token", "submit") %}
+        <h4>{{ field.label() }}</h4>
+        <p>{{ field }}
+        {% for error in field.errors %}
+            <br><span class="error">{{ error }}</span>
+        {% endfor %}
+        </p>
+    {% endfor %}
+    <p>{{ form.submit(class_="btn btn-primary") }}</p>
+</form>
