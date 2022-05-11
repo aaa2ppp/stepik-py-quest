@@ -21,9 +21,11 @@ def check_session():
 @app.route("/")
 @app.route("/select_game")
 def select_game():
-    return render_template("select_game.html",
-                           title="Привет!",
-                           locations=((f"start/{location.__name__}", location) for location in locations))
+    return render_template(
+        "select_game.html",
+        title="Привет!",
+        locations=((f"{url_for('start_game', game_name=location.__name__)}", location) for location in locations)
+    )
 
 
 # динамический маршрут
