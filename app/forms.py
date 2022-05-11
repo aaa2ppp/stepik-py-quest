@@ -1,29 +1,52 @@
 from wtforms import IntegerField, SubmitField, SelectField
-from wtforms.validators import InputRequired, NumberRange
 from flask_wtf import FlaskForm
+from wtforms.validators import InputRequired, NumberRange
 
-from app.game import Direction
-
-
-class StartGameForm(FlaskForm):
-    submit = SubmitField(label="Начать игру")
+from game import Direction
+from util.session import SessionService
 
 
 class GameForm(FlaskForm):
     direction = SelectField(
         "В какую сторону пойдем?",
         choices=(
-            (Direction.TOP.value, "Вперед"),
-            (Direction.BOTTOM.value, "Назад"),
-            (Direction.RIGHT.value, "Вправо"),
-            (Direction.LEFT.value, "Влево")
+            (Direction.FORWARD.name, "Вперед"),
+            (Direction.BACKWARD.name, "Назад"),
+            (Direction.RIGHT.name, "Вправо"),
+            (Direction.LEFT.name, "Влево")
         ),
-        coerce=lambda s: Direction(int(s))
+        default=lambda: _get_default_value(GameForm, 'direction', Direction.FORWARD.name),
+        coerce=lambda name: Direction[name]
     )
     distance = IntegerField(
         "На сколько шагов?",
-        default=1,
-        validators=[InputRequired(), NumberRange(min=1, max=3)]
+        default=lambda: _get_default_value(GameForm, 'distance', 1),
+        validators=(
+            InputRequired(),
+            NumberRange(min=1, max=100, message="За раз вы можете сделать от 1 до 100 шагов")
+        )
     )
     submit = SubmitField(label="В путь!")
-    quit = SubmitField(label="Надоело!")
+
+    def __init__(self, context):
+        super().__init__()
+        self._context_data = context.get_dict(self.__class__)
+
+    def validate(self, *args, **kwargs):
+        result = super().validate(*args, **kwargs)
+        if result:
+            data = self._context_data
+            data['direction'] = self.direction.data.name
+            data['distance'] = self.distance.data
+        return result
+
+
+# TODO: This is a workaround. I don't understand how to pass the session context data
+#  to the form fields in __init__ method of form.
+def _get_default_value(form_class, field, default):
+    data = SessionService().get_session_context().get(form_class)
+    if data is not None:
+        value = data.get(field)
+        if value is not None:
+            return value
+    return default

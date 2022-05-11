@@ -1,19 +1,46 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-    <form action="{{ action }}" method="post">
-        {{ form.csrf_token() }}
-        {% for field in form if not field.name in ("csrf_token", "submit", "quit") %}
-            <h4>{{ field.label() }}</h4>
-            <p>{{ field }}
-                {% for error in field.errors %}
-                    <br><span class="error">{{ error }}</span>
-                {% endfor %}
-            </p>
-        {% endfor %}
-        <p>
-            {{ form.submit(class_="btn btn-primary") }}
-            {{ form.quit(class_="btn") }}
-        </p>
-    </form>
+    {% include "game_log.html" %}
+
+    <hr>
+    {% with %}
+        {% set hero = game.hero %}
+        {% set place = hero.place %}
+
+        {% if hero.is_winner() %}
+            <h2>Поздравляю!</h2>
+        {% elif hero.is_loser() %}
+            <h2>Oops!.. Вы {{ place.where }} :(</h2>
+        {% else %}
+            <h2>Сейчас вы {{ place.where }}</h2>
+        {% endif %}
+
+        <div class="media">
+            <div class="media-body">
+                {% if hero.is_winner() %}
+                    <p>Вы достигли цели. Вы находитесь {{ place.where }}.</p>
+                {% endif %}
+
+                {% if place.description %}
+                    <p>{{ place.description }}</p>
+                {% endif %}
+
+                {% if not game.is_over() %}
+                    {% include "next_step.html" %}
+                {% endif %}
+            </div>
+
+            {% if place.image %}
+                <img class="ml-3" src="{{ url_for('static', filename=place.image) }}"
+                     alt="{{ place.name }} image" width="320px" height="auto">
+            {% endif %}
+        </div>
+    {% endwith %}
+{% endblock %}
+
+{% block nav_list_items %}
+    <li class="nav-item"><a class="nav-link" href="{{ url_for('select_game') }}">Выбрать другую игру</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ url_for('restart_game') }}">Начать игру сначала</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ url_for('bye') }}">Надоело!</a></li>
 {% endblock %}

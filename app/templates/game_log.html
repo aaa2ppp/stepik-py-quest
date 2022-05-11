@@ -1,0 +1,21 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="list-group list-group-flush">
+            {% for category, message in messages %}
+                {% if category == "message" %}
+                    {% set _category = "info" %}
+                {% elif category == "error" or category == "fail" %}
+                    {% set _category = "danger" %}
+                {% elif category == "debug" %}
+                    {% set _category = None %}
+                {% else %}
+                    {% set _category = category %}
+                {% endif %}
+                {% if _category %}
+                    <li class="alert list-group-item list-group-item-{{ _category }}" role="alert"
+                        data-dismiss="alert"><strong>{{ category.upper() }}:</strong> {{ message }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}

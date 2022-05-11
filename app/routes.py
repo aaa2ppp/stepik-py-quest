@@ -1,83 +1,96 @@
 from flask import redirect, request, url_for, flash
 
 from app import app, render_template
-from app.forms import StartGameForm, GameForm
-from app.game import Game, GameWin, GameLoss
-from app.helpers import open_session
+from app.forms import GameForm
+from app.helpers import required_session, get_game, required_location, error
+from game import locations, Game
 from util.session import SessionService
 
 
 @app.route("/check-session")
 def check_session():
     if SessionService().has_session():
-        return redirect(request.args.get('next', url_for("home")))
+        return redirect(request.args.get('next', url_for("select_game")))
     else:
-        code = 403
-        title = "Create session error"
-        message = "Can't create session. This usually happens if your browser blocks cookies."
-        return render_template("message.html", title=title, message=message), code
+        return error(code=403,
+                     header="Ошибка создания сеанса",
+                     message="Я не могу создать сеанс. Такое может происходить, если в вашем броузере" +
+                             " заблокированы куки.")
 
 
-@app.route("/", methods=("GET", "POST"))
-@open_session
-def home(context):
-    form = StartGameForm()
-    if request.method == "POST" and form.validate_on_submit():
-        Game(context).create_new_location()
-        return redirect(url_for("new_game"))
-    else:
-        return render_template("index.html", form=form)
+@app.route("/")
+@app.route("/select_game")
+def select_game():
+    return render_template("select_game.html",
+                           title="Привет!",
+                           locations=((f"start/{location.__name__}", location) for location in locations))
 
 
-@app.route("/new-game")
-@open_session
-def new_game(context):
-    form = GameForm()
-    game = Game(context)
-    flash(f"Вы находитесь {game.current_place.where}")
-    return render_template("game.html", form=form, action=url_for("next_step"))
-
-
-@app.route("/next-step", methods=("GET", "POST"))
-@open_session
-def next_step(context):
-    form = GameForm()
-    game = Game(context)
-
-    if request.method == "POST" and form.validate_on_submit():
-        if form.quit.data:
-            game.delete_location()
-            return redirect(url_for("bye"))
-
-        game.go(form.direction.data, form.distance.data)
-        place = game.current_place
-
-        if isinstance(place, GameWin):
-            return redirect(url_for("game_over"))
-        elif isinstance(place, GameLoss):
-            return redirect(url_for("game_over"))
-        else:
+# динамический маршрут
+@app.route("/start/<game_name>")
+@required_session
+def start_game(contex, game_name):
+    for location in locations:
+        if location.__name__ == game_name:
+            contex.data.clear()
+            game = get_game(contex)
+            game.location = location()
             return redirect(url_for("next_step"))
+
+    return error(code=404,
+                 header=f"Игра {game_name} не найдена.",
+                 message="Выберете другую игру на начальной странице.")
+
+
+@app.route("/restart")
+@required_location
+def restart_game(context):
+    game = get_game(context)
+    game.start()
+    return render_game(game, GameForm(context))
+
+
+@app.route("/next_step")
+@required_location
+def next_step(context):
+    game = get_game(context)
+    return render_game(game, GameForm(context))
+
+
+@app.route("/do_step", methods=("GET", "POST",))
+@required_location
+def do_step(context):
+    game = get_game(context)
+    form = GameForm(context)
+
+    if form.validate_on_submit():
+        game.go(form.direction.data, form.distance.data)
+        return redirect(url_for("next_step"))
     else:
-        flash(f"Вы попали {game.current_place.where}")
-        return render_template("game.html", form=form, action="")
+        flash("Недопустимый ввод", category="error")
+        return render_game(game, form)
 
 
-@app.route("/game-over")
-@open_session
-def game_over(context):
-    form = StartGameForm()
-    game = Game(context)
-    place = game.current_place
-
-    if isinstance(place, GameWin):
-        flash(f"Победа! Вы {place.where}", category="susses")
-    elif isinstance(place, GameLoss):
-        flash(f"Oops!.. Вы {place.where}", category="error")
-
-    return render_template("index.html", form=form, action=url_for("home"))
+def render_game(game: Game, form: GameForm):
+    return render_template("game.html",
+                           title=game.location.name,
+                           game=game,
+                           form=form,
+                           action=url_for("do_step"))
 
 
 @app.route("/bye")
 def bye():
-    return render_template("message.html", title="Пока, пока!", message="Ты это, если что заходи...")
+    return render_template("message.html",
+                           title="Пока, пока!",
+                           message="Ты это, если что заходи...")
+
+
+@app.route("/TODO")
+def todo():
+    return render_template("TODO.html", title="TODO")
+
+
+@app.route("/rules")
+def rules():
+    return render_template("rules.html", title="Правила")

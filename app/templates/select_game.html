@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h2>Выберете игру</h2>
+    <ul class="list-unstyled">
+        {% for href, location in locations %}
+            <li>
+                <hr>
+                <h3><a href="{{ href }}">{{ location.name }}</a></h3>
+                <div class="media">
+                    <div class="media-body">
+                        {{ location.description }}
+                    </div>
+                    {% if location.image %}
+                        <img class="ml-3"
+                             src="{{ url_for('static', filename=location.image) }}" alt="{{ location.name }} image"
+                             width="240px" height="auto">
+                    {% endif %}
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+{% block nav_list_items %}
+    <li class="nav-item"><a class="nav-link" href="{{ url_for('rules') }}">Правила</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ url_for('todo') }}">TODO</a></li>
+{% endblock %}

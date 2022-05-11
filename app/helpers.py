@@ -1,13 +1,16 @@
 import bs4
+import flask
 import htmlmin
 from functools import wraps
 
 from flask import request, url_for, redirect
 
-from util.session import SessionService
+from app import render_template
+from game import Game
+from util.session import SessionService, SessionContext
 
 
-def open_session(f):
+def required_session(f):
     """
     Decorator to create session and giving the session context to wrapped function.
 
@@ -25,6 +28,24 @@ def open_session(f):
             return redirect(url_for("check_session", next=request.url))
 
     return decorated_function
+
+
+def required_location(f):
+    @wraps(f)
+    def decorated_function(context, *args, **kwargs):
+        if get_game(context).location is None:
+            return redirect(url_for("home"))
+        else:
+            return f(context, *args, **kwargs)
+
+    return required_session(decorated_function)
+
+
+def get_game(context: SessionContext) -> Game:
+    game = context.data.get(Game.__class__)
+    if game is None:
+        context.data[Game.__class__] = game = Game(flask.flash)
+    return game
 
 
 def html_prettify(f):
@@ -50,3 +71,8 @@ def html_minify(f):
         return htmlmin.minify(f(*args, **kwargs), remove_empty_space=True, remove_comments=True)
 
     return wrapped
+
+
+def error(code: int, header: str, message: str):
+    return render_template("message.html", title="Ошибка", header=header, message=message), code
+
