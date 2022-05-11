@@ -34,7 +34,7 @@ def required_location(f):
     @wraps(f)
     def decorated_function(context, *args, **kwargs):
         if get_game(context).location is None:
-            return redirect(url_for("home"))
+            return redirect(url_for("select_game"))
         else:
             return f(context, *args, **kwargs)
 
