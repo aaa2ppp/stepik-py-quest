@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <ul class="list-unstyled">
+        <li>
+            <strong>[+]</strong> Проект должен находиться на <em>git</em> или в облачном хранилище, чтобы другие
+            участники смогли его скачать и протестировать. Виртуальную среду в папку не помещайте и лишние файлы
+            уберите.
+        </li>
+        <li>
+            <p><strong>[+]</strong> К проекту должно быть небольшое пояснение: что он делает, как с ним работать и
+                другие уместные примечания.</p>
+            <p><code>README.md, <a href="{{ url_for('rules') }}">{{ url_for('rules') }}</a></code></p>
+        </li>
+        <li>
+            <strong>[+]</strong> Проект должен запускаться и не выдавать критических ошибок во время работы.
+        </li>
+        <li>
+            <p><strong>[+]</strong> Должен присутствовать базовый шаблон, примененный к другим страницам.</p>
+            <p><code>templates/base.html</code></p>
+        </li>
+        <li>
+            <strong>[+]</strong> Используйте <em>html</em>-теги, где это уместно. Не нужно создавать профессиональную
+            верстку
+            этот курс о серверной разработке.
+        </li>
+        <li>
+            <p><strong>[+]</strong> В проекте необходимо применить <em>css</em>. Для этого можете использовать готовые
+                стили из интернета. Например, <em>Bootstrap 3</em>. Насколько хорошо выглядит сайт оцениваться не будет.
+                Задача в том, чтобы подключить какие-либо используемые стили к тегам. Изображения тоже приветствуются.
+            </p>
+            <p><code>templates/base.html</code></p>
+            {% raw %}
+            <pre><code class="language-html">&lt;!-- Bootstrap4 styles --&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" ... &gt;
+...
+&lt;link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet" type="text/css"/&gt;</code></pre>
+            {% endraw %}
+        </li>
+        <li>
+            <strong>[+]</strong> В программе должно использоваться расширение <code>Flask-WTF</code> и присутствовать
+            как минимум одна форма, наследуемая от класса <code>FlaskForm</code>.
+        <li>
+            <p><strong>[+]</strong> Необходимо применить как минимум 4 различных поля (<code>SubmitField</code>
+                принимаем за одно из полей).</p>
+            <p><code>app/forms.py, templates/common_form.html, <a
+                    href="{{ url_for('next_step') }}">{{ url_for('next_step') }}</a></code></p>
+            <pre><code class="language-html">&lt;!-- next step form --&gt;
+&lt;input id="csrf_token"...&gt;
+&lt;select id="direction" ...&gt;
+&lt;input id="distance" ...&gt;
+&lt;input id="submit" ...&gt;</code></pre>
+        </li>
+        <li>
+            <p><strong>[+]</strong> Должно присутствовать как минимум 2 разных валидатора и их применение должно быть
+                обосновано.</p>
+            <p><code>app/forms.py</code></p>
+            <pre><code class="language-python">class GameForm(FlaskForm):
+    # ...
+    distance = IntegerField(
+        # ...
+        validators=(
+            InputRequired(),
+            NumberRange(min=1, max=100, message="За раз вы можете сделать от 1 до 100 шагов")
+        )</code></pre>
+        </li>
+
+        <li>
+            <p><strong>[+]</strong> В проекте должно находиться как минимум две функции представления: должен быть как
+                статический, так и динамический маршруты.
+            </p>
+            <p><code>app/routes.py</code></p>
+            <pre><code  class="language-python"># динамический маршрут
+@app.route("/start/&lt;game_name&gt;")
+@required_session
+def start_game(contex, game_name):
+    # ...</code></pre>
+        </li>
+        <li>
+            <p><strong>[+]</strong> Одна из функций представления должна иметь возможность срабатывать на POST-запрос.
+            </p>
+            <p><code>app/routes.py</code></p>
+            <pre><code class="language-python">@app.route("/next_step", methods=("GET", "POST",))
+@required_location
+def next_step(context):
+    #...</code></pre>
+        </li>
+        <li>
+            <strong>[?]</strong> Код в проекте цельный и логически завершенный.
+        </li>
+    </ul>
+<script>
+    hljs.highlightAll();
+</script>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+{% endblock %}

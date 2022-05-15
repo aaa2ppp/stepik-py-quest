@@ -1,0 +1,19 @@
+<form action="{{ action }}" method="post" novalidate>
+    {{ form.csrf_token() }}
+    {% for field in form if not field.name in ("csrf_token", "submit") %}
+        <div class="form-group">
+            {{ field.label(class_="form-label") }}
+            {% if not field.errors %}
+                {{ field(class_="form-control") }}
+            {% else %}
+                {{ field(class_="form-control is-invalid") }}
+                <ul id="{{ field.id }}Feedback" class="list-unstyled invalid-feedback">
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <p>{{ form.submit(class_="btn btn-primary") }}</p>
+</form>

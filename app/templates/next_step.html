@@ -1,0 +1,20 @@
+<!-- what's around? -->
+{% if place.top or place.bottom or place.right or place.left %}
+    <ul>
+        {% if place.forward %}
+            <li>Впереди - {{ place.forward.name }}</li>
+        {% endif %}
+        {% if place.right %}
+            <li>Справа - {{ place.right.name }}</li>
+        {% endif %}
+        {% if place.left %}
+            <li>Слева - {{ place.left.name }}</li>
+        {% endif %}
+        {% if place.backward %}
+            <li>Позади - {{ place.backward.name }}</li>
+        {% endif %}
+    </ul>
+{% endif %}
+
+<!-- next step form -->
+{% include "common_form.html" %}
