@@ -40,7 +40,7 @@ def start_game(contex, game_name):
     except GameNotFoundError:
         return error(code=404,
                      header=f"Игра {game_name} не найдена.",
-                     message="Выберете другую игру на начальной странице.")
+                     message="Выберите другую игру на начальной странице.")
 
     return redirect(url_for("next_step"))
 
